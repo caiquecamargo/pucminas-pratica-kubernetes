@@ -17,7 +17,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ./db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
   
@@ -64,3 +64,6 @@ networks:
     driver: bridge
   backend_network:
     driver: bridge
+
+volumes:
+  db_data:
