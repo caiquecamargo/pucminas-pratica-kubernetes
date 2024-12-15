@@ -5,7 +5,7 @@ export FLASK_APP="run.py"
 export FLASK_DB_TYPE="postgres"
 export FLASK_DB_USER="postgres"
 export FLASK_DB_NAME="postgres"
-export FLASK_DB_PASSWORD="secretpass"
+export FLASK_DB_PASSWORD="root123"
 export FLASK_DB_HOST="localhost"
 export FLASK_DB_PORT="5432"
 

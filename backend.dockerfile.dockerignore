@@ -1,0 +1,7 @@
+frontend
+db_data
+__pychache__
+venv
+.env
+README.md
+start-backend.sh
