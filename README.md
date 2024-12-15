@@ -1,157 +1,65 @@
-Aqui está um exemplo de um arquivo `README.md` para o seu jogo:
+# Arquitetura
 
----
+## Estrutura de pastas
 
-# Jogo de Adivinhação com Flask
+- .env (arquivo de variáveis de ambiente)
+- docker-compose.yml (arquivo de configuração do docker)
+- backend
+    - backend.dockerfile (arquivo de configuração do docker)
+    - backend.dockerfile.dockerignore (arquivo de configuração dos arquivos que não serão copiados para o container)
+    - ... demais arquivos do backend
+- frontend
+    - frontend.dockerfile (arquivo de configuração do docker)
+    - nginx.conf (arquivo de configuração do nginx)
+    - ... demais arquivos do frontend
 
-Este é um simples jogo de adivinhação desenvolvido utilizando o framework Flask. O jogador deve adivinhar uma senha criada aleatoriamente, e o sistema fornecerá feedback sobre o número de letras corretas e suas respectivas posições.
+## Containers
 
-## Funcionalidades
+O projeto é composto por três containers, dois de serviços e um de banco de dados.
 
-- Criação de um novo jogo com uma senha fornecida pelo usuário.
-- Adivinhe a senha e receba feedback se as letras estão corretas e/ou em posições corretas.
-- As senhas são armazenadas  utilizando base64.
-- As adivinhações incorretas retornam uma mensagem com dicas.
-  
-## Requisitos
+- **backend**: Container em python flask que expõe uma API REST para o frontend.
+- **frontend**: Container em react que consome a API REST do backend.
+- **db**: Container em postgres que armazena os dados da aplicação.
 
-- Python 3.8+
-- Flask
-- Um banco de dados local (ou um mecanismo de armazenamento configurado em `current_app.db`)
-- node 18.17.0
+Foram criados duas redes para comunicação entre os containers, uma para os containers de serviços e outra para o container de banco de dados, sendo o container de backend no meio das duas redes.
 
-## Instalação
+- **backend_network**: Rede para comunicação entre os containers de serviços.
+- **db_network**: Rede para comunicação entre o container de banco de dados e o container de backend.
 
-1. Clone o repositório:
+## Load Balancing e Escalabilidade
 
-   ```bash
-   git clone https://github.com/fams/guess_game.git
-   cd guess-game
-   ```
+A escalabilidade em um projeto docker-compose não é muito flexível, para tanto foi definido que o container de backend será replicado em 3 instâncias, com o nginx se encarregando de fazer o load balancing entre as instâncias.
 
-2. Crie um ambiente virtual e ative-o:
+Para tanto, no arquivo de configuração do nginx definimos a porta 4000 como a porta de entrada para o backend e configuramos o upstream para as três instâncias do backend (5000, 5001 e 5002).
 
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   venv\Scripts\activate  # Windows
-   ```
+## Persistência de Dados
 
-3. Instale as dependências:
+Para persistir os dados do banco de dados, foi criado um volume no docker-compose.yml que mapeia a pasta /var/lib/postgresql/data do container de banco de dados para o volume do db-data.
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Execução do projeto
 
-4. Configure o banco de dados com as variáveis de ambiente no arquivo start-backend.sh
-    1. Para sqlite
+Criar arquivo .env na raiz do projeto com as seguintes variáveis de ambiente:
 
-        ```bash
-            export FLASK_APP="run.py"
-            export FLASK_DB_TYPE="sqlite"            # Use SQLITE
-            export FLASK_DB_PATH="caminho/db.sqlite" # caminho do banco
-        ```
+```
+POSTGRES_DB=<nome do banco de dados>
+POSTGRES_USER=<usuário do banco de dados>
+POSTGRES_PASSWORD=<senha do banco de dados>
 
-    2. Para Postgres
+# A porta em que o frontend será exposto
+# Por padrão, a porta 8080 é utilizada
+FRONTEND_PORT=8080
+```
 
-        ```bash
-            export FLASK_APP="run.py"
-            export FLASK_DB_TYPE="postgres"       # Use postgres
-            export FLASK_DB_USER="postgres"       # Usuário do banco
-            export FLASK_DB_NAME="postgres"       # Nome do Banco
-            export FLASK_DB_PASSWORD="secretpass" # Senha do banco
-            export FLASK_DB_HOST="localhost"      # Hostname
-            export FLASK_DB_PORT="5432"           # Porta
-        ```
+Executar o comando `docker-compose up --build -d` na raiz do projeto para gerar as imagens e subir os containers.
 
-    3. Para DynamoDB
+Caso não haja alteração nas imagens e elas já tenham sido geradas, basta executar o comando `docker-compose up -d` para subir os containers.
 
-        ```bash
-        export FLASK_APP="run.py"
-        export FLASK_DB_TYPE="dynamodb"       # Use postgres
-        export AWS_DEFAULT_REGION="us-east-1" # AWS region
-        export AWS_ACCESS_KEY_ID="FAKEACCESSKEY123456" 
-        export AWS_SECRET_ACCESS_KEY="FakeSecretAccessKey987654321"
-        export AWS_SESSION_TOKEN="FakeSessionTokenABCDEFGHIJKLMNOPQRSTUVXYZ1234567890"
-        ```
+Para acessar o frontend, basta acessar `http://localhost:8080` no navegador.
 
-5. Execute o backend
+# Manutenabilidade
 
-   ```bash
-   ./start-backend.sh &
-   ```
+Para manutenção do projeto, basta alterar os arquivos de configuração dos containers e executar o comando `docker-compose up --build -d` para gerar as novas imagens e subir os containers.
 
-6. Cuidado! verifique se o seu linux está lendo o arquivo .sh com fim de linha do windows CRLF. Para verificar utilize o vim -b start-backend.sh
+Os serviços são isolados e podem ser alterados sem afetar os demais serviços.
 
-## Frontend
-No diretorio de frontend
-
-1. Instale o node com o nvm. Se não tiver o nvm instalado, siga o [tutorial](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating)
-
-    ```bash
-    nvm install 18.17.0
-    nvm use 18.17.0
-    # Habilite o yarn
-    corepack enable
-    ```
-
-2. Instale as dependências do node com o npm:
-
-    ```bash
-    npm install
-    ```
-
-3. Exporte a url onde está executando o backend e execute o backend.
-
-   ```bash
-    export REACT_APP_BACKEND_URL=http://localhost:5000
-    yarn start
-   ```
-
-## Como Jogar
-
-### 1. Criar um novo jogo
-
-Acesse a url do frontend http://localhost:3000
-
-Digite uma frase secreta
-
-Envie
-
-Salve o game-id
-
-
-### 2. Adivinhar a senha
-
-Acesse a url do frontend http://localhost:3000
-
-Vá para o endponint breaker
-
-entre com o game_id que foi gerado pelo Creator
-
-Tente adivinhar
-
-## Estrutura do Código
-
-### Rotas:
-
-- **`/create`**: Cria um novo jogo. Armazena a senha codificada em base64 e retorna um `game_id`.
-- **`/guess/<game_id>`**: Permite ao usuário adivinhar a senha. Compara a adivinhação com a senha armazenada e retorna o resultado.
-
-### Classes Importantes:
-
-- **`Guess`**: Classe responsável por gerenciar a lógica de comparação entre a senha e a tentativa do jogador.
-- **`WrongAttempt`**: Exceção personalizada que é levantada quando a tentativa está incorreta.
-
-
-
-## Melhorias Futuras
-
-- Implementar autenticação de usuário para salvar e carregar jogos.
-- Adicionar limite de tentativas.
-- Melhorar a interface de feedback para as tentativas de adivinhação.
-
-## Licença
-
-Este projeto está licenciado sob a [MIT License](LICENSE).
-
+Após a alteração é possível atualizar apenas o serviço que foi alterado, sem a necessidade de reiniciar todos os containers com o comando `docker-compose up -d <nome do serviço>`.
