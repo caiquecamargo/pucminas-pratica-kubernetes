@@ -1,4 +1,10 @@
-# Arquitetura
+# Documentação
+
+## Informações gerais
+
+- **Nome**: Caique de Camargo
+- **Matrícula**: 217240
+- **Repositório**: https://github.com/caiquecamargo/pucminas-pratica-kubernetes
 
 ## Estrutura de pastas
 
@@ -16,6 +22,8 @@
     - db-deployment.yaml (configuração do deployment e demais serviços do banco de dados)
     - frontend-configmap.yaml (configuração do configmap do frontend)
     - frontend-deployment.yaml (configuração do deployment e demais serviços do frontend)
+
+Desses arquivos, apenas os que se encontram na pasta `k8s` são necessários para o funcionamento da aplicação, mas vale deixar os demais arquivos como documentação de tudo o que foi feito.
 
 ## Arquitetura
 
@@ -63,7 +71,7 @@ kubectl apply -f k8s/frontend-deployment.yaml
 ```
 
 Para acessar o frontend:
-- Se estiver utilizando o docker-desktop, o IP é localhos `http://localhost:30008`
+- Se estiver utilizando o docker-desktop, o IP é localhost `http://localhost:30008`
 - Se estiver utilizando o minikube, o IP é o IP do minikube `minikube ip` e a porta 30008 `http://<minikube-ip>:30008`
 
 # Limpeza do projeto
